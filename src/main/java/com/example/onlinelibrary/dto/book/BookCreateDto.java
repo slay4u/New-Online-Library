@@ -1,4 +1,4 @@
-package com.example.onlinelibrary.dto;
+package com.example.onlinelibrary.dto.book;
 
 import com.example.onlinelibrary.util.LocalDateDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -24,7 +24,7 @@ public class BookCreateDto {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate publishDate;
 
-    @NotNull(message = " authors ids must be present")
+    @NotNull(message = "authors ids must be present")
     private Set<Long> authorsId;
 
     @NotNull(message = "genres must be present")

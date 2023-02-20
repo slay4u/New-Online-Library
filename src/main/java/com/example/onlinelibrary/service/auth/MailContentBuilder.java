@@ -1,4 +1,4 @@
-package com.example.onlinelibrary.service.impl;
+package com.example.onlinelibrary.service.auth;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

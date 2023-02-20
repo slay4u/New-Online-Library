@@ -1,21 +1,16 @@
-package com.ivank.restcityresidents.util;
+package com.example.onlinelibrary.util;
 
+import com.example.onlinelibrary.exception.LocalDateParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.ivank.restcityresidents.exception.LocalDateParseException;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
-/**
- * Custom deserializer for LocalDate (you may set your own pattern - if you decide to do so,
- * do not forget about db date store pattern either). Used mainly to throw custom exception,
- * if deserialization for LocalDate failed.
- */
 public class LocalDateDeserializer extends StdDeserializer<LocalDate> {
 
     public LocalDateDeserializer() {

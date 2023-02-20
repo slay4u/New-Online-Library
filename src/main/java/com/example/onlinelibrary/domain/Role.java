@@ -1,2 +1,6 @@
-package com.example.onlinelibrary.domain;public enum Role {
+package com.example.onlinelibrary.domain;
+
+public enum Role {
+    USER,
+    ADMIN
 }

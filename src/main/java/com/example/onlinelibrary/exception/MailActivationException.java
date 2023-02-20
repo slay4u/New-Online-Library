@@ -1,2 +1,11 @@
-package com.example.onlinelibrary.exception;public class MailActivationException {
+package com.example.onlinelibrary.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(code = HttpStatus.BAD_REQUEST)
+public class MailActivationException extends RuntimeException {
+    public MailActivationException(String message) {
+        super(message);
+    }
 }

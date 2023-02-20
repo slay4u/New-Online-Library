@@ -1,17 +1,14 @@
 package com.example.onlinelibrary.security;
 
+import com.example.onlinelibrary.exception.AuthenticationException;
 import com.example.onlinelibrary.service.auth.UserDetailsServiceImpl;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNullApi;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,6 +17,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Objects;
 
 @NoArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -35,19 +33,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String jwtFromRequest = getJwtFromRequest(request);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if(StringUtils.hasText(jwtFromRequest) && jwtProvider.validateToken(jwtFromRequest)) {
-            String username = jwtProvider.getUsernameFromJwt(jwtFromRequest);
-
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            UsernamePasswordAuthenticationToken authenticationToken =
-                    new UsernamePasswordAuthenticationToken(userDetails,
-                            null, userDetails.getAuthorities());
-
-            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        // If not authenticated
+        if(Objects.isNull(authentication)) {
+            filterChain.doFilter(request, response);
         }
-        filterChain.doFilter(request, response);
+        // Else provide a token
+        else {
+            if(StringUtils.hasText(jwtFromRequest) && jwtProvider.validateToken(jwtFromRequest)) {
+                String username = jwtProvider.getUsernameFromJwt(jwtFromRequest);
+
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(userDetails,
+                                null, userDetails.getAuthorities());
+
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            }
+            else {
+                throw new AuthenticationException("Token not provided!");
+            }
+            filterChain.doFilter(request, response);
+        }
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
