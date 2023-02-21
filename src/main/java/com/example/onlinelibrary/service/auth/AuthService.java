@@ -44,6 +44,7 @@ public class AuthService {
     private Long tokenExpiration;
 
     public void signup(RegisterRequest registerRequest) {
+        validateExistingUser(registerRequest);
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setEmail(registerRequest.getEmail());
@@ -136,5 +137,13 @@ public class AuthService {
             throw new InsufficientAuthenticationException("Credentials are not valid!");
         }
         return authenticate;
+    }
+    
+    private void validateExistingUser(RegisterRequest registerRequest) {
+        String toCheck = registerRequest.getUsername();
+        Optional<User> byUsername = userDao.findByUsername(toCheck);
+        if(byUsername.isPresent()) {
+            throw new AuthenticationException("User with username " + toCheck + " already exists!");
+        }
     }
 }

@@ -45,6 +45,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return userDao.findById(id);
     }
 
+    public Optional<User> getUserByUsername(String username) {
+        return userDao.findByUsername(username);
+    }
+
     private Collection<? extends GrantedAuthority> getAuthorities(String role) {
         return Collections.singletonList(new SimpleGrantedAuthority(role));
     }
