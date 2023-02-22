@@ -220,7 +220,7 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
     private Author getAuthorsById(Long id) {
         Optional<Author> resultAuthor = authorDao.getAuthorById(id);
         if(resultAuthor.isEmpty()) {
-            throw new NotFoundException("Author by id was not found!");
+            throw new NotFoundException("Author by id " + id + " was not found!");
         }
         return resultAuthor.get();
     }
