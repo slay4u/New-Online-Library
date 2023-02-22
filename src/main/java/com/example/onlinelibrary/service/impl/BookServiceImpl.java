@@ -58,13 +58,19 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
         this.bookDao = bookDao;
         this.authorDao = authorDao;
         this.imageDataDao = imageDataDao;
-        this.FOLDER_PATH = getFOLDER_PATH();
+        this.FOLDER_PATH = "C:\\Users\\vladi\\IdeaProjects\\OnlineLibrary\\src\\main\\resources\\images";
     }
 
-    private String getFOLDER_PATH() throws URISyntaxException {
+    private String getFOLDER_PATH() {
         URL res = BookServiceImpl.class.getClassLoader().getResource("images");
         assert res != null;
-        File file = Paths.get(res.toURI()).toFile();
+        File file = null;
+        try {
+            file = Paths.get(res.toURI()).toFile();
+        } catch (URISyntaxException e) {
+            System.out.println("Exception: " + e);
+            throw new RuntimeException(e);
+        }
         return file.getAbsolutePath();
     }
 
@@ -214,7 +220,7 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
     private Author getAuthorsById(Long id) {
         Optional<Author> resultAuthor = authorDao.getAuthorById(id);
         if(resultAuthor.isEmpty()) {
-            throw new NotFoundException("Author by id was not found!");
+            throw new NotFoundException("Author by id " + id + " was not found!");
         }
         return resultAuthor.get();
     }
