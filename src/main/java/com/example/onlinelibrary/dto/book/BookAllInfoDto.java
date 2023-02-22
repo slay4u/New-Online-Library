@@ -13,4 +13,6 @@ public class BookAllInfoDto {
     private LocalDate publishDate;
     private Set<String> authors;
     private Set<String> genres;
+    private String language;
+    private String desc;
 }

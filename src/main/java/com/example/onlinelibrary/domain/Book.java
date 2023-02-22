@@ -2,28 +2,9 @@ package com.example.onlinelibrary.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import javax.persistence.CascadeType;
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
@@ -36,6 +17,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,6 +41,12 @@ public class Book {
     @JsonIgnoreProperties(value = "bookAuthors")
     private Set<Author> authors = new HashSet<>();
 
+    @Column(name = "lang")
+    private Language language;
+
+    @Lob
+    private String description;
+
     @ElementCollection(targetClass = Genre.class)
     @CollectionTable(name = "book_genre", joinColumns = @JoinColumn(name = "id_book"))
     @Enumerated(EnumType.STRING)
@@ -68,4 +56,17 @@ public class Book {
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<ImageData> imageDataList;
+
+    public enum Language {
+        ARABIC,
+        CHINESE,
+        ENGLISH,
+        GERMAN,
+        FRENCH,
+        PORTUGUESE,
+        RUSSIAN,
+        SPANISH,
+        UKRAINIAN,
+        JAPANESE
+    }
 }

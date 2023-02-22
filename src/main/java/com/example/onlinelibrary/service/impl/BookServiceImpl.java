@@ -74,9 +74,10 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
         validateBookName(bookDto.getName());
         Set<Genre> genres = getGenres(bookDto);
         Set<Author> authors = getAuthorsOrThrow(bookDto.getAuthorsId());
-        Book book = convertToEntity(bookDto, authors, genres, new Book());
-        bookDao.save(book);
-        return convertEntityToDto(book, "created");
+        Book.Language lang = getLanguages(bookDto);
+        Book book = convertToEntity(bookDto, authors, genres, lang, new Book());
+        Book savedBook = bookDao.save(book);
+        return convertEntityToDto(savedBook, "created");
     }
 
     @Override
@@ -84,7 +85,8 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
         validateBook(bookDto);
         Set<Genre> genres = getGenres(bookDto);
         Set<Author> authors = getAuthorsOrThrow(bookDto.getAuthorsId());
-        Book book = convertToEntity(bookDto, authors, genres, new Book());
+        Book.Language lang = getLanguages(bookDto);
+        Book book = convertToEntity(bookDto, authors, genres, lang, new Book());
         Book savedBook = bookDao.save(updateContent(book, getById(id)));
         return convertEntityToDto(savedBook, "updated");
     }
@@ -183,6 +185,16 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
                 .collect(Collectors.toSet());
     }
 
+    private Book.Language getLanguages(BookCreateDto bookDto) {
+        String lang = bookDto.getLanguage();
+        for(Book.Language language : Book.Language.values()) {
+            if(language.name().equals(lang)) {
+                return Book.Language.valueOf(lang);
+            }
+        }
+        throw new IllegalArgumentException("Language was not found!");
+    }
+
     private Book updateContent(Book book, Book resultBook) {
         resultBook.setName(book.getName());
         resultBook.setAuthors(book.getAuthors());
@@ -216,11 +228,14 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
     private Book convertToEntity(BookCreateDto bookDto,
                                  Set<Author> authors,
                                  Set<Genre> genres,
+                                 Book.Language language,
                                  Book book) {
         book.setName(bookDto.getName());
         book.setPublishDate(bookDto.getPublishDate());
         book.setAuthors(authors);
         book.setGenreSet(genres);
+        book.setLanguage(language);
+        book.setDescription(bookDto.getDesc());
         return book;
     }
 

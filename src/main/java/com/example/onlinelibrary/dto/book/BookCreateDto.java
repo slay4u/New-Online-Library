@@ -29,4 +29,9 @@ public class BookCreateDto {
 
     @NotNull(message = "genres must be present")
     private Set<String> genres;
+
+    @NotBlank(message = "provide language")
+    private String language;
+
+    private String desc;
 }

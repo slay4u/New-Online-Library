@@ -22,7 +22,9 @@ public interface BookGeneralHandler {
                 book.getName(),
                 book.getPublishDate(),
                 authors,
-                genres
+                genres,
+                String.valueOf(book.getLanguage()),
+                book.getDescription()
         );
     }
 
