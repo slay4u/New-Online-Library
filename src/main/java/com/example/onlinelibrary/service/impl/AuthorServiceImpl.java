@@ -35,8 +35,8 @@ public class AuthorServiceImpl implements AuthorService {
     public AuthorInfoDto createAuthor(AuthorCreateDto authorDto) {
         validateAuthor(authorDto);
         Author author = convertToEntity(authorDto, new Author());
-        authorDao.save(author);
-        return convertEntityToDto(author, "created");
+        Author saved = authorDao.save(author);
+        return convertEntityToDto(saved, "created");
     }
 
     @Override
