@@ -18,14 +18,14 @@ public interface BookGeneralHandler {
                 .map(String::valueOf)
                 .collect(Collectors.toSet());
 
-        return new BookAllInfoDto(
-                book.getName(),
-                book.getPublishDate(),
-                authors,
-                genres,
-                String.valueOf(book.getLanguage()),
-                book.getDescription()
-        );
+        return BookAllInfoDto.builder()
+                .name(book.getName())
+                .publishDate(book.getPublishDate())
+                .authors(authors)
+                .genres(genres)
+                .language(String.valueOf(book.getLanguage()))
+                .desc(book.getDescription())
+                .build();
     }
 
     default List<BookAllInfoDto> listToDto(List<Book> books) {

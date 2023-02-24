@@ -27,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -58,19 +59,13 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
         this.bookDao = bookDao;
         this.authorDao = authorDao;
         this.imageDataDao = imageDataDao;
-        this.FOLDER_PATH = "C:\\Users\\vladi\\IdeaProjects\\OnlineLibrary\\src\\main\\resources\\images";
+        this.FOLDER_PATH = getFOLDER_PATH();
     }
 
-    private String getFOLDER_PATH() {
+    private String getFOLDER_PATH() throws URISyntaxException {
         URL res = BookServiceImpl.class.getClassLoader().getResource("images");
         assert res != null;
-        File file = null;
-        try {
-            file = Paths.get(res.toURI()).toFile();
-        } catch (URISyntaxException e) {
-            System.out.println("Exception: " + e);
-            throw new RuntimeException(e);
-        }
+        File file = Paths.get(res.toURI()).toFile();
         return file.getAbsolutePath();
     }
 
@@ -286,5 +281,32 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
         IOUtils.closeQuietly(byteArrayOutputStream);
 
         return byteArrayOutputStream.toByteArray();
+    }
+
+    private byte[] fetchImage(Long id) throws IOException {
+        List<ImageData> allByBookId = imageDataDao.findAllByBookId(id);
+        if(allByBookId.isEmpty()) {
+            return null;
+        }
+        ImageData singleImage = allByBookId.stream().findFirst().orElseThrow();
+        String imagePath = singleImage.getFilePath();
+        return Files.readAllBytes(new File(imagePath).toPath());
+    }
+
+    @Override
+    public List<BookAllInfoDto> listToDto(List<Book> books) {
+        return BookGeneralHandler.super.listToDto(books);
+    }
+
+    // Kind of "partial" override
+    @Override
+    public BookAllInfoDto allInfoDto(Book book) {
+        BookAllInfoDto bookAllInfoDto = BookGeneralHandler.super.allInfoDto(book);
+        try {
+            bookAllInfoDto.setImage(fetchImage(book.getIdBook()));
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Error while reading from image path!");
+        }
+        return bookAllInfoDto;
     }
 }
