@@ -47,7 +47,7 @@ public class JwtProvider {
                 .compact();
     }
 
-    public boolean validateToken(String jwt) {
+    public void validateToken(String jwt) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt);
         } catch (ExpiredJwtException e) {
@@ -56,7 +56,6 @@ public class JwtProvider {
         } catch (Exception e) {
             throw new AuthenticationException("Error while trying to read jwt token from client!");
         }
-        return true;
     }
 
     public String getUsernameFromJwt(String token) {

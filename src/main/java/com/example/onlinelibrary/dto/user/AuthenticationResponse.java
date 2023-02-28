@@ -13,6 +13,7 @@ public class AuthenticationResponse {
     private String authenticationToken;
     private Long userId;
     private String username;
+    private String role;
     private Instant expiresAt;
     private String refreshToken;
 }

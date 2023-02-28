@@ -75,11 +75,12 @@ public class AuthService {
 
     public AuthenticationResponse login(LoginRequest loginRequest) {
         Authentication authenticate = getAuthentication(loginRequest);
-        SecurityContextHolder.getContext().setAuthentication(authenticate);
         String token = jwtProvider.generateToken(authenticate);
+        User userByName = findUserByName(loginRequest.getUsername());
         return new AuthenticationResponse(token,
-                findUserByName(loginRequest.getUsername()).getUserId(),
+                userByName.getUserId(),
                 loginRequest.getUsername(),
+                String.valueOf(userByName.getRole()),
                 Instant.now().plusMillis(jwtProvider.getJwtExpirationInMillis()),
                 refreshTokenService.generateRefreshToken().getToken());
     }
@@ -94,9 +95,11 @@ public class AuthService {
     public AuthenticationResponse refreshToken(RefreshTokenRequest refreshToken) {
         refreshTokenService.validateRefreshToken(refreshToken.getRefreshToken());
         String token = jwtProvider.generateTokenWithUsername(refreshToken.getUsername());
+        User userByName = findUserByName(refreshToken.getUsername());
         return new AuthenticationResponse(token,
-                findUserByName(refreshToken.getUsername()).getUserId(),
+                userByName.getUserId(),
                 refreshToken.getUsername(),
+                String.valueOf(userByName.getRole()),
                 Instant.now().plusMillis(jwtProvider.getJwtExpirationInMillis()),
                 refreshToken.getRefreshToken());
     }

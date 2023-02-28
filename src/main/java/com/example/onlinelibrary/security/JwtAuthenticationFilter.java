@@ -3,6 +3,7 @@ package com.example.onlinelibrary.security;
 import com.example.onlinelibrary.exception.AuthenticationException;
 import com.example.onlinelibrary.service.auth.UserDetailsServiceImpl;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -29,34 +30,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private UserDetailsServiceImpl userDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
-        String jwtFromRequest = getJwtFromRequest(request);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
+        final String authHeader = request.getHeader("Authorization");
+        final String jwt;
 
-        // If not authenticated
-        if(Objects.isNull(authentication)) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
+            return;
         }
-        // Else provide a token
-        else {
-            if(StringUtils.hasText(jwtFromRequest) && jwtProvider.validateToken(jwtFromRequest)) {
-                String username = jwtProvider.getUsernameFromJwt(jwtFromRequest);
+        jwt = getJwtFromRequest(request);
+        jwtProvider.validateToken(jwt);
+        final String username = jwtProvider.getUsernameFromJwt(jwt);
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(userDetails,
-                                null, userDetails.getAuthorities());
-
-                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-            }
-            else {
-                throw new AuthenticationException("Token not provided!");
-            }
-            filterChain.doFilter(request, response);
+        // User is present, logged in and accesses a secured endpoint
+        if(Objects.nonNull(username) && Objects.isNull(SecurityContextHolder.getContext().getAuthentication())) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    userDetails,
+                    null,
+                    userDetails.getAuthorities()
+            );
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
         }
+        filterChain.doFilter(request, response);
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
