@@ -15,16 +15,24 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
 
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
+
+    private static final String[] AUTH_WHITELIST = {
+            // -- Swagger UI v2
+            "/v2/api-docs",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/configuration/ui",
+            "/configuration/security",
+            "/swagger-ui.html",
+            "/webjars/**",
+            // -- Swagger UI v3 (OpenAPI)
+            "/v3/api-docs/**",
+            "/swagger-ui/**"
+    };
 
     @Autowired
     @Qualifier("delegatedAuthenticationEntryPoint")
@@ -52,6 +60,8 @@ public class SecurityConfig {
         // Disable CSRF for now
         http.csrf().disable().authorizeRequests()
                 .antMatchers("/online-library/v1/auth/**")
+                .permitAll()
+                .antMatchers(AUTH_WHITELIST)
                 .permitAll()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .antMatchers("/online-library/v1/books/new/**").hasAuthority("ADMIN")

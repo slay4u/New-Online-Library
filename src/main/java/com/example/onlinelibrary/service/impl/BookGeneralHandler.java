@@ -20,7 +20,7 @@ public interface BookGeneralHandler {
 
         return BookAllInfoDto.builder()
                 .name(book.getName())
-                .publishDate(book.getPublishDate())
+                .publishDate(String.valueOf(book.getPublishDate()))
                 .authors(authors)
                 .genres(genres)
                 .language(String.valueOf(book.getLanguage()))

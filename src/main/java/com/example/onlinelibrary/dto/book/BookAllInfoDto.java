@@ -14,7 +14,7 @@ import java.util.Set;
 @Setter
 public class BookAllInfoDto {
     private String name;
-    private LocalDate publishDate;
+    private String publishDate;
     private Set<String> authors;
     private Set<String> genres;
     private String language;

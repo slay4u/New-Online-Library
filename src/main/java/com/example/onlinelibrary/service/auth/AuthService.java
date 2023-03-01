@@ -24,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -81,7 +83,10 @@ public class AuthService {
                 userByName.getUserId(),
                 loginRequest.getUsername(),
                 String.valueOf(userByName.getRole()),
-                Instant.now().plusMillis(jwtProvider.getJwtExpirationInMillis()),
+                String.valueOf(ZonedDateTime
+                        .ofInstant(Instant.now().plusMillis(
+                                jwtProvider.getJwtExpirationInMillis()),
+                                ZoneId.of("EET"))),
                 refreshTokenService.generateRefreshToken().getToken());
     }
 
@@ -100,7 +105,10 @@ public class AuthService {
                 userByName.getUserId(),
                 refreshToken.getUsername(),
                 String.valueOf(userByName.getRole()),
-                Instant.now().plusMillis(jwtProvider.getJwtExpirationInMillis()),
+                String.valueOf(ZonedDateTime
+                        .ofInstant(Instant.now().plusMillis(
+                                jwtProvider.getJwtExpirationInMillis()),
+                                ZoneId.of("EET"))),
                 refreshToken.getRefreshToken());
     }
 
