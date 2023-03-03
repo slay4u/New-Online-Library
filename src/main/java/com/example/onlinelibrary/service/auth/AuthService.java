@@ -97,6 +97,12 @@ public class AuthService {
         return Optional.of(principal);
     }
 
+    public User getDomainUser() {
+        org.springframework.security.core.userdetails.User currentUser =
+                getCurrentUser().orElseThrow();
+        return findUserByName(currentUser.getUsername());
+    }
+
     public AuthenticationResponse refreshToken(RefreshTokenRequest refreshToken) {
         refreshTokenService.validateRefreshToken(refreshToken.getRefreshToken());
         String token = jwtProvider.generateTokenWithUsername(refreshToken.getUsername());

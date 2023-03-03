@@ -46,6 +46,14 @@ public interface BookService {
     List<BookAllInfoDto> getAllBooks(int pageNumber);
 
     /**
+     * Returns all the books from db and marks current user's favorites
+     * @param pageNumber number of page with books
+     * @return list of books
+     * @apiNote user has to be authorized
+     */
+    List<BookAllInfoDto> getAllBooksAuthUser(int pageNumber);
+
+    /**
      * Uploads books image (filepath) to db, image to filesystem.
      * @param file img to save
      * @param id book's id to assign
@@ -61,4 +69,6 @@ public interface BookService {
      * @throws IOException if something fails
      */
     byte[] downloadImages(Long id) throws IOException;
+
+    double getTotalPagesCount();
 }

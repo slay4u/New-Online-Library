@@ -29,7 +29,7 @@ public class SwaggerConfiguration {
         return new ApiInfoBuilder()
                 .title("Online-library API BooksLit")
                 .version("1.0")
-                .description("BooksLit is an ad-free API for easily accessing anything" +
+                .description("BooksLit is an ad-free API for easily accessing anything " +
                         "from a great variety of modern novels to the Shakespearean classics.")
                 .contact(new Contact("Ivan Krylosov",
                         "https://github.com/IvanFromOdesa",

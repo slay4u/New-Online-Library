@@ -2,30 +2,12 @@ package com.example.onlinelibrary.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
-import javax.persistence.CascadeType;
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.Lob;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
@@ -36,7 +18,6 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode
 public class Book {
     @Id
@@ -76,6 +57,28 @@ public class Book {
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<ImageData> imageDataList;
+
+    // Mark user favorites
+    @Transient
+    private boolean favorite;
+
+    public Book(Long idBook,
+                String name,
+                LocalDate publishDate,
+                Set<Author> authors,
+                Language language,
+                String description,
+                Set<Genre> genreSet,
+                List<ImageData> imageDataList) {
+        this.idBook = idBook;
+        this.name = name;
+        this.publishDate = publishDate;
+        this.authors = authors;
+        this.language = language;
+        this.description = description;
+        this.genreSet = genreSet;
+        this.imageDataList = imageDataList;
+    }
 
     public enum Language {
         ARABIC,

@@ -10,9 +10,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync
 @Import(SwaggerConfiguration.class)
 public class OnlineLibraryApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(OnlineLibraryApplication.class, args);
     }
-
 }

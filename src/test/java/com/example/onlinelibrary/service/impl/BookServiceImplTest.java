@@ -41,7 +41,7 @@ class BookServiceImplTest {
 
     @BeforeEach
     void setUp() throws URISyntaxException {
-        underTest = new BookServiceImpl(bookDao, authorDao, imageDataDao);
+        underTest = new BookServiceImpl(bookDao, authorDao, imageDataDao, null, null);
     }
 
     @Test

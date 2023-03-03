@@ -14,10 +14,11 @@ public interface BookDao extends JpaRepository<Book, Long> {
 
     @Query(value = "SELECT * FROM public.book", nativeQuery = true)
     List<Book> getAllBooks(Pageable pageable);
-
+    
     @Query(value = "SELECT * FROM public.book" +
             " WHERE name=?1", nativeQuery = true)
     Optional<Book> getBookByName(String name);
+
     @Query(value = "SELECT * FROM public.book" +
             " WHERE id_book = ?1", nativeQuery = true)
     Optional<Book> getBookById(Long id);
@@ -27,4 +28,8 @@ public interface BookDao extends JpaRepository<Book, Long> {
             "INNER JOIN usert u on u.user_id = favorites.user_id " +
             "WHERE u.user_id = ?1", nativeQuery = true)
     List<Book> getFavoritesByUserId(Long idUser, Pageable pageable);
+
+    @Query(value = "SELECT COUNT(*) FROM public.book",
+            nativeQuery = true)
+    long getAllBookCount();
 }

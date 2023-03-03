@@ -3,6 +3,7 @@ package com.example.onlinelibrary.domain;
 public enum Genre {
     ACTION_FICTION,
     ADVENTURE_FICTION,
+    ALLEGORY,
     AUTOBIOGRAPHY,
     BILDUNGSROMAN,
     BIOGRAPHY,
@@ -39,6 +40,7 @@ public enum Genre {
     POLITICS,
     QUOTATION,
     ROMANCE_NOVEL,
+    SATIRE,
     SCIENCE_FICTION,
     SELF_HELP_BOOK,
     SHORT_STORY,

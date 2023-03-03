@@ -19,6 +19,7 @@ public interface BookGeneralHandler {
                 .collect(Collectors.toSet());
 
         return BookAllInfoDto.builder()
+                .id(book.getIdBook())
                 .name(book.getName())
                 .publishDate(String.valueOf(book.getPublishDate()))
                 .authors(authors)

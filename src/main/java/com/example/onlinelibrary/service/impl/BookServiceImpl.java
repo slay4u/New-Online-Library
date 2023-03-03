@@ -4,6 +4,7 @@ import com.example.onlinelibrary.domain.Author;
 import com.example.onlinelibrary.domain.Book;
 import com.example.onlinelibrary.domain.Genre;
 import com.example.onlinelibrary.domain.ImageData;
+import com.example.onlinelibrary.domain.User;
 import com.example.onlinelibrary.dto.book.BookAllInfoDto;
 import com.example.onlinelibrary.dto.book.BookCreateDto;
 import com.example.onlinelibrary.dto.book.BookInfoDto;
@@ -13,6 +14,7 @@ import com.example.onlinelibrary.repository.AuthorDao;
 import com.example.onlinelibrary.repository.BookDao;
 import com.example.onlinelibrary.repository.ImageDataDao;
 import com.example.onlinelibrary.service.BookService;
+import com.example.onlinelibrary.service.auth.AuthService;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -43,22 +45,24 @@ import java.util.zip.ZipOutputStream;
 @Transactional
 public class BookServiceImpl implements BookService, BookGeneralHandler {
 
-    private final int PAGE_ELEMENTS_AMOUNT = 15;
-
+    private final int PAGE_ELEMENTS_AMOUNT = 5;
     private final BookDao bookDao;
-
     private final AuthorDao authorDao;
-
     private final ImageDataDao imageDataDao;
-
+    private final AuthService authService;
+    private final FavoritesServiceImpl favoritesService;
     private final String FOLDER_PATH;
 
     public BookServiceImpl(BookDao bookDao,
                            AuthorDao authorDao,
-                           ImageDataDao imageDataDao) throws URISyntaxException {
+                           ImageDataDao imageDataDao,
+                           AuthService authService,
+                           FavoritesServiceImpl favoritesService) throws URISyntaxException {
         this.bookDao = bookDao;
         this.authorDao = authorDao;
         this.imageDataDao = imageDataDao;
+        this.authService = authService;
+        this.favoritesService = favoritesService;
         this.FOLDER_PATH = getFOLDER_PATH();
     }
 
@@ -106,10 +110,19 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
 
     @Override
     public List<BookAllInfoDto> getAllBooks(int pageNumber) {
-        if(pageNumber < 0) {
+        if (pageNumber < 0) {
             throw new IllegalArgumentException("Page number cannot be less than 0!");
         }
         List<Book> books = bookDao.getAllBooks(PageRequest.of(pageNumber, PAGE_ELEMENTS_AMOUNT));
+        return listToDto(books);
+    }
+
+    @Override
+    public List<BookAllInfoDto> getAllBooksAuthUser(int pageNumber) {
+        if (pageNumber < 0) {
+            throw new IllegalArgumentException("Page number cannot be less than 0!");
+        }
+        List<Book> books = getAllBooksMarkUserFavorites(pageNumber);
         return listToDto(books);
     }
 
@@ -136,24 +149,31 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
     @Override
     public byte[] downloadImages(Long id) throws IOException {
         List<ImageData> imageData = imageDataDao.findAllByBookId(id);
-        if(imageData.isEmpty()) {
+        if (imageData.isEmpty()) {
             throw new NotFoundException("No image by the id " + id + " has been found!");
         }
         return zipImages(imageData.stream().map(ImageData::getFilePath).toList());
     }
 
+    @Override
+    public double getTotalPagesCount() {
+        long count = bookDao.getAllBookCount();
+        double pagesNum = (double) count / PAGE_ELEMENTS_AMOUNT;
+        return Math.ceil(pagesNum);
+    }
+
     private void validateBook(BookCreateDto book) {
-        if(book.getName().isBlank() || Objects.isNull(book.getName())) {
+        if (book.getName().isBlank() || Objects.isNull(book.getName())) {
             throw new IllegalArgumentException("Book's name is not valid");
         }
-        if(book.getPublishDate().isAfter(LocalDate.now())) {
+        if (book.getPublishDate().isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("Publish date is not valid");
         }
     }
 
     private void validateBookName(String name) {
         Optional<Book> byName = bookDao.getBookByName(name);
-        if(byName.isPresent()) {
+        if (byName.isPresent()) {
             throw new IllegalArgumentException("Book with the name "
                     + name +
                     " already exist!");
@@ -161,9 +181,10 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
     }
 
     private void validateGenres(Set<String> genresInString) {
-        A:for(String genreInString : genresInString) {
-            for(Genre genre : Genre.values()) {
-                if(genre.name().equals(genreInString)) {
+        A:
+        for (String genreInString : genresInString) {
+            for (Genre genre : Genre.values()) {
+                if (genre.name().equals(genreInString)) {
                     continue A;
                 }
             }
@@ -173,7 +194,7 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
 
     private void validatePresentImage(String name, String filePath) {
         Optional<ImageData> result = imageDataDao.findByNameAndFilePath(name, filePath);
-        if(result.isPresent()) {
+        if (result.isPresent()) {
             throw new AlreadyExistException("Image already exist!");
         }
     }
@@ -188,8 +209,8 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
 
     private Book.Language getLanguages(BookCreateDto bookDto) {
         String lang = bookDto.getLanguage();
-        for(Book.Language language : Book.Language.values()) {
-            if(language.name().equals(lang)) {
+        for (Book.Language language : Book.Language.values()) {
+            if (language.name().equals(lang)) {
                 return Book.Language.valueOf(lang);
             }
         }
@@ -206,7 +227,7 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
 
     private Book getById(Long id) {
         Optional<Book> resultBook = bookDao.getBookById(id);
-        if(resultBook.isEmpty()) {
+        if (resultBook.isEmpty()) {
             throw new NotFoundException("Book by id was not found!");
         }
         return resultBook.get();
@@ -214,7 +235,7 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
 
     private Author getAuthorsById(Long id) {
         Optional<Author> resultAuthor = authorDao.getAuthorById(id);
-        if(resultAuthor.isEmpty()) {
+        if (resultAuthor.isEmpty()) {
             throw new NotFoundException("Author by id " + id + " was not found!");
         }
         return resultAuthor.get();
@@ -254,11 +275,11 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
 
         List<File> fileList = new ArrayList<>();
 
-        for(String imgPath : imgPathList) {
+        for (String imgPath : imgPathList) {
             fileList.add(new File(imgPath));
         }
 
-        for(File file : fileList) {
+        for (File file : fileList) {
             zipOutputStream.putNextEntry(new ZipEntry(file.getName()));
             FileInputStream fileInputStream;
             try {
@@ -285,7 +306,7 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
 
     private byte[] fetchImage(Long id) throws IOException {
         List<ImageData> allByBookId = imageDataDao.findAllByBookId(id);
-        if(allByBookId.isEmpty()) {
+        if (allByBookId.isEmpty()) {
             return null;
         }
         ImageData singleImage = allByBookId.stream().findFirst().orElseThrow();
@@ -302,11 +323,18 @@ public class BookServiceImpl implements BookService, BookGeneralHandler {
     @Override
     public BookAllInfoDto allInfoDto(Book book) {
         BookAllInfoDto bookAllInfoDto = BookGeneralHandler.super.allInfoDto(book);
+        bookAllInfoDto.setFavorite(book.isFavorite());
         try {
             bookAllInfoDto.setImage(fetchImage(book.getIdBook()));
         } catch (IOException e) {
-            throw new IllegalArgumentException("Error while reading from image path!");
+            throw new IllegalArgumentException("Error while reading from image path! " + book.getIdBook());
         }
         return bookAllInfoDto;
+    }
+
+    private List<Book> getAllBooksMarkUserFavorites(int pageNumber) {
+        List<Book> books = bookDao.getAllBooks(PageRequest.of(pageNumber, PAGE_ELEMENTS_AMOUNT));
+        User domainUser = authService.getDomainUser();
+        return favoritesService.markUserFavorites(books, domainUser);
     }
 }

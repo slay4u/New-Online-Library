@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class FavoritesServiceImpl implements FavoritesService, BookGeneralHandler {
 
-    private final int PAGE_ELEMENTS_AMOUNT = 15;
+    private final int PAGE_ELEMENTS_AMOUNT = 5;
     private final FavoritesDao favoritesDao;
     private final UserDao userDao;
     private final BookDao bookDao;
@@ -67,6 +68,17 @@ public class FavoritesServiceImpl implements FavoritesService, BookGeneralHandle
                 .result("Book with id " + bookId + " was successfully deleted from favorites!")
                 .idUser(targetUser.getUserId())
                 .build();
+    }
+
+    List<Book> markUserFavorites(List<Book> books, User targetUser) {
+        books.forEach(book -> {
+            Optional<Favorites> byId =
+                    favoritesDao.findById(new Favorites.FavoritesId(targetUser, book));
+            if(byId.isPresent()) {
+                book.setFavorite(true);
+            }
+        });
+        return books;
     }
 
     private User getUserById(Long userId) {
